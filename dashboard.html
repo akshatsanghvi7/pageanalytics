@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Analytics Dashboard</title>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    #stats { margin: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Website Analytics Dashboard</h1>
+  <div id="stats"></div>
+
+  <script>
+    const socket = io(); // Connect to same server
+    const statsDiv = document.getElementById('stats');
+
+    // Real-time live viewers update
+    socket.on('liveUpdate', (count) => {
+      updateDashboard(); // Refresh all stats on live change
+    });
+
+    // Fetch and display stats
+    async function updateDashboard() {
+      const response = await fetch('/stats');
+      const data = await response.json();
+
+      statsDiv.innerHTML = `
+        <p><strong>Current Live Viewers:</strong> ${data.liveViewers}</p>
+        <p><strong>Total Viewers:</strong> ${data.totalViewers}</p>
+        <p><strong>Unique Viewers:</strong> ${data.uniqueViewers} (based on IP)</p>
+        <p><strong>Viewers Today:</strong> ${data.todayViewers}</p>
+        <p><strong>Viewers Yesterday:</strong> ${data.yesterdayViewers}</p>
+        <p><strong>Viewers This Week:</strong> ${data.weekViewers}</p>
+        <p><strong>Viewers This Month:</strong> ${data.monthViewers}</p>
+        <h3>Regions:</h3>
+        <ul>${data.regions.map(r => `<li>${r.region}: ${r.count}</li>`).join('')}</ul>
+        <h3>Pages Visited:</h3>
+        <ul>${data.pages.map(p => `<li>${p.page}: ${p.count}</li>`).join('')}</ul>
+      `;
+    }
+
+    // Initial load and refresh every 10 seconds for historical stats
+    updateDashboard();
+    setInterval(updateDashboard, 10000);
+  </script>
+</body>
+</html>
